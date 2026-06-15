@@ -2,4 +2,4 @@ myenv/
 db.sqlite3
 staticfiles/
 */__pycache__/
-*/migrations/
+*/migrations/__pycache__/
