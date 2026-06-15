@@ -1,0 +1,97 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Brendlar — Mumu{% endblock %}
+{% block page_title %}Brendlar{% endblock %}
+{% block active %}brands{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span><span>Brendlar</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:brand-create' %}" class="btn btn-accent btn-sm">
+    <i class="bi bi-plus"></i> Yangi brend
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="surface">
+  <div class="surface-hd">
+    <span><strong>{{ brands|length }}</strong> ta brend</span>
+    <a href="{% url 'dashboard:brand-create' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-plus"></i> Qo'shish
+    </a>
+  </div>
+  {% if brands %}
+  <table class="pt">
+    <thead>
+      <tr>
+        <th style="width:50px;"></th>
+        <th>Nomi</th>
+        <th>Mamlakat</th>
+        <th style="text-align:center;">Mahsulotlar</th>
+        <th>Holat</th>
+        <th style="width:80px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in brands %}
+      <tr>
+        <td>
+          {% if b.logo %}
+            <img src="{{ b.logo }}" style="width:32px;height:32px;object-fit:cover;border-radius:7px;border:1px solid var(--border);"
+                 onerror="this.style.display='none'" alt="">
+          {% else %}
+            <div style="width:32px;height:32px;border-radius:7px;background:#f3f4f6;border:1px solid var(--border);
+                        display:flex;align-items:center;justify-content:center;color:var(--text-4);">
+              <i class="bi bi-patch-check" style="font-size:14px;"></i>
+            </div>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'dashboard:brand-edit' pk=b.pk %}" class="pt-link">{{ b.name }}</a>
+          <div class="pt-sub mono">{{ b.slug }}</div>
+        </td>
+        <td style="color:var(--text-3);">{{ b.country|default:"—" }}</td>
+        <td style="text-align:center;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+                       border-radius:6px;background:#f3f4f6;font-size:11.5px;font-weight:600;color:var(--text-3);">
+            {{ b.product_count }}
+          </span>
+        </td>
+        <td>
+          <span class="pill {% if b.is_active %}pill-active{% else %}pill-archived{% endif %}">
+            {% if b.is_active %}Faol{% else %}Nofaol{% endif %}
+          </span>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{% url 'dashboard:brand-edit' pk=b.pk %}" class="btn btn-ghost btn-sm">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:#e11d48;"
+                    onclick="confirmDel('{% url 'dashboard:brand-delete' pk=b.pk %}','{{ b.name|escapejs }}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-patch-check"></i>
+    <p>Hali brend yo'q</p>
+    <a href="{% url 'dashboard:brand-create' %}" class="btn btn-accent btn-sm">
+      <i class="bi bi-plus"></i> Brend qo'shish
+    </a>
+  </div>
+  {% endif %}
+</div>
+<form id="delForm" method="post">{% csrf_token %}</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+function confirmDel(url,name){ if(confirm(`"${name}" ni o'chirishni tasdiqlaysizmi?`)){ const f=document.getElementById('delForm');f.action=url;f.submit(); } }
+</script>
+{% endblock %}

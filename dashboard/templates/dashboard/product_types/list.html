@@ -1,0 +1,79 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Mahsulot turlari — Mumu{% endblock %}
+{% block page_title %}Mahsulot turlari{% endblock %}
+{% block active %}product_types{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span><span>Mahsulot turlari</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:product-type-create' %}" class="btn btn-accent btn-sm">
+    <i class="bi bi-plus"></i> Yangi tur
+  </a>
+{% endblock %}
+
+{% block content %}
+{% if product_types %}
+<div class="row g-3">
+  {% for pt in product_types %}
+  <div class="col-md-6 col-xl-4">
+    <div class="surface h-100" style="display:flex;flex-direction:column;">
+      <div class="surface-hd">
+        <span>{{ pt.name }}</span>
+        <a href="{% url 'dashboard:product-type-edit' pk=pt.pk %}"
+           class="btn btn-ghost btn-sm" title="Tahrirlash">
+          <i class="bi bi-pencil"></i>
+        </a>
+      </div>
+      <div style="padding:14px 18px;flex:1;">
+        <div class="d-flex gap-2 mb-3">
+          <span class="pill pill-draft" style="font-size:10.5px;">
+            <i class="bi bi-box me-1"></i>{{ pt.product_count }} mahsulot
+          </span>
+          <span class="pill pill-draft" style="font-size:10.5px;">
+            <i class="bi bi-list-check me-1"></i>{{ pt.attr_count }} xususiyat
+          </span>
+        </div>
+        {% if pt.description %}
+          <p style="font-size:12.5px;color:var(--text-3);margin-bottom:10px;">
+            {{ pt.description|truncatechars:90 }}
+          </p>
+        {% endif %}
+        <div class="d-flex flex-wrap gap-1">
+          {% for attr in pt.attributes.all|slice:":9" %}
+            <span style="display:inline-block;padding:2px 8px;border-radius:20px;
+                         background:#f3f4f6;color:var(--text-3);font-size:11px;font-weight:500;">
+              {{ attr.name }}
+            </span>
+          {% endfor %}
+          {% if pt.attributes.count > 9 %}
+            <span style="display:inline-block;padding:2px 8px;border-radius:20px;
+                         background:#eef2ff;color:var(--accent);font-size:11px;font-weight:600;">
+              +{{ pt.attributes.count|add:"-9" }} ta
+            </span>
+          {% endif %}
+        </div>
+      </div>
+      <div style="padding:12px 18px;border-top:1px solid var(--border-l);">
+        <a href="{% url 'dashboard:product-type-edit' pk=pt.pk %}"
+           class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-sliders2 me-1"></i>Xususiyatlarni boshqarish
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="surface">
+  <div class="empty-state">
+    <i class="bi bi-tags"></i>
+    <p>Hali mahsulot turi yo'q</p>
+    <a href="{% url 'dashboard:product-type-create' %}" class="btn btn-accent btn-sm">
+      <i class="bi bi-plus"></i> Mahsulot turi qo'shish
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

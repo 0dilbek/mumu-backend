@@ -1,0 +1,103 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Kategoriyalar — Mumu{% endblock %}
+{% block page_title %}Kategoriyalar{% endblock %}
+{% block active %}categories{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span><span>Kategoriyalar</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:category-create' %}" class="btn btn-accent btn-sm">
+    <i class="bi bi-plus"></i> Yangi kategoriya
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="surface">
+  <div class="surface-hd">
+    <span><strong>{{ categories|length }}</strong> ta kategoriya</span>
+    <a href="{% url 'dashboard:category-create' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-plus"></i> Qo'shish
+    </a>
+  </div>
+  {% if categories %}
+  <table class="pt">
+    <thead>
+      <tr>
+        <th>Nomi</th>
+        <th>Ota kategoriya</th>
+        <th>Slug</th>
+        <th style="text-align:center;">Ichkilar</th>
+        <th style="text-align:center;">Mahsulotlar</th>
+        <th>Holat</th>
+        <th style="width:80px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in categories %}
+      <tr>
+        <td>
+          <a href="{% url 'dashboard:category-edit' pk=c.pk %}" class="pt-link">
+            {% if c.parent %}<span style="color:var(--text-4);margin-right:4px;">└</span>{% endif %}
+            {{ c.name }}
+          </a>
+        </td>
+        <td style="color:var(--text-3);">{{ c.parent.name|default:"—" }}</td>
+        <td><span class="mono">{{ c.slug }}</span></td>
+        <td style="text-align:center;">
+          {% if c.child_count %}
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+                         border-radius:6px;background:#f3f4f6;font-size:11.5px;font-weight:600;color:var(--text-3);">
+              {{ c.child_count }}
+            </span>
+          {% else %}<span style="color:var(--text-4);">—</span>{% endif %}
+        </td>
+        <td style="text-align:center;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+                       border-radius:6px;background:#f3f4f6;font-size:11.5px;font-weight:600;color:var(--text-3);">
+            {{ c.product_count }}
+          </span>
+        </td>
+        <td>
+          <span class="pill {% if c.is_active %}pill-active{% else %}pill-archived{% endif %}">
+            {% if c.is_active %}Faol{% else %}Nofaol{% endif %}
+          </span>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{% url 'dashboard:category-edit' pk=c.pk %}"
+               class="btn btn-ghost btn-sm" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:#e11d48;"
+                    onclick="confirmDel('{% url 'dashboard:category-delete' pk=c.pk %}','{{ c.name|escapejs }}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-diagram-3"></i>
+    <p>Hali kategoriya yo'q</p>
+    <a href="{% url 'dashboard:category-create' %}" class="btn btn-accent btn-sm">
+      <i class="bi bi-plus"></i> Kategoriya qo'shish
+    </a>
+  </div>
+  {% endif %}
+</div>
+<form id="delForm" method="post">{% csrf_token %}</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+function confirmDel(url, name) {
+  if (confirm(`"${name}" ni o'chirishni tasdiqlaysizmi?`)) {
+    const f = document.getElementById('delForm'); f.action=url; f.submit();
+  }
+}
+</script>
+{% endblock %}

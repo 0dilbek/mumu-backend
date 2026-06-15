@@ -1,0 +1,143 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Mahsulotlar — Mumu{% endblock %}
+{% block page_title %}Mahsulotlar{% endblock %}
+{% block active %}products{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span><span>Mahsulotlar</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:product-create' %}" class="btn btn-accent btn-sm">
+    <i class="bi bi-plus"></i> Yangi mahsulot
+  </a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filter bar -->
+<div class="surface mb-3" style="padding:14px 18px;">
+  <form method="get" class="d-flex flex-wrap align-items-end gap-3">
+    <div>
+      <label class="form-label">Qidirish</label>
+      <div class="d-flex align-items-center" style="border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;">
+        <span style="padding:0 10px;color:var(--text-4);"><i class="bi bi-search" style="font-size:13px;"></i></span>
+        <input type="text" name="q" value="{{ q }}" placeholder="Nomi yoki brend..."
+               style="border:none;outline:none;padding:7px 8px 7px 0;font-size:13.5px;font-family:inherit;width:200px;background:transparent;">
+      </div>
+    </div>
+    <div>
+      <label class="form-label">Status</label>
+      <select name="status" class="form-select form-select-sm" style="width:130px;">
+        <option value="">Barchasi</option>
+        <option value="draft"        {% if status_f == 'draft' %}selected{% endif %}>Qoralama</option>
+        <option value="active"       {% if status_f == 'active' %}selected{% endif %}>Faol</option>
+        <option value="out_of_stock" {% if status_f == 'out_of_stock' %}selected{% endif %}>Stokda yo'q</option>
+        <option value="archived"     {% if status_f == 'archived' %}selected{% endif %}>Arxivlangan</option>
+      </select>
+    </div>
+    <div>
+      <label class="form-label">Brend</label>
+      <select name="brand" class="form-select form-select-sm" style="width:150px;">
+        <option value="">Barchasi</option>
+        {% for b in brands %}
+          <option value="{{ b.pk }}" {% if brand_f == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-accent btn-sm">
+        <i class="bi bi-funnel"></i> Qidirish
+      </button>
+      {% if q or status_f or brand_f %}
+        <a href="{% url 'dashboard:product-list' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-x"></i> Tozalash
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table -->
+<div class="surface">
+  <div class="surface-hd">
+    <span>
+      {% if q or status_f or brand_f %}
+        <span style="color:var(--text-3);">Natija:</span>
+      {% endif %}
+      <strong>{{ products|length }}</strong> ta mahsulot
+    </span>
+  </div>
+  {% if products %}
+  <table class="pt">
+    <thead>
+      <tr>
+        <th>Mahsulot</th>
+        <th>Brend</th>
+        <th>Kategoriya</th>
+        <th>Tur</th>
+        <th style="text-align:center;">Variant</th>
+        <th>Status</th>
+        <th>Qo'shilgan</th>
+        <th style="width:70px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td>
+          <a href="{% url 'dashboard:product-edit' pk=p.pk %}" class="pt-link">{{ p.name }}</a>
+          <div class="pt-sub mono">{{ p.slug }}</div>
+        </td>
+        <td style="color:var(--text-3);">{{ p.brand.name|default:"—" }}</td>
+        <td style="color:var(--text-3);">{{ p.primary_category.name|default:"—" }}</td>
+        <td style="color:var(--text-4);font-size:12.5px;">{{ p.product_type.name }}</td>
+        <td style="text-align:center;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+                       border-radius:6px;background:#f3f4f6;font-size:11.5px;font-weight:600;color:var(--text-3);">
+            {{ p.variant_count }}
+          </span>
+        </td>
+        <td><span class="pill pill-{{ p.status }}">{{ p.get_status_display }}</span></td>
+        <td style="color:var(--text-4);font-size:12px;">{{ p.created_at|date:"d.m.Y" }}</td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{% url 'dashboard:product-edit' pk=p.pk %}"
+               class="btn btn-ghost btn-sm" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:#e11d48;"
+                    title="O'chirish"
+                    onclick="confirmDelete('{% url 'dashboard:product-delete' pk=p.pk %}','{{ p.name|escapejs }}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-box-seam"></i>
+    <p>{% if q or status_f or brand_f %}Filter bo'yicha mahsulot topilmadi{% else %}Hali mahsulot yo'q{% endif %}</p>
+    <a href="{% url 'dashboard:product-create' %}" class="btn btn-accent btn-sm">
+      <i class="bi bi-plus"></i> Mahsulot qo'shish
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<form id="delForm" method="post">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  if (confirm(`"${name}"\nBu mahsulotni o'chirishni tasdiqlaysizmi?`)) {
+    const f = document.getElementById('delForm');
+    f.action = url; f.submit();
+  }
+}
+</script>
+{% endblock %}

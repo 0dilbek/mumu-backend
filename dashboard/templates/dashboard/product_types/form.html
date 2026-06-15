@@ -1,0 +1,208 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{% if instance %}{{ instance.name }}{% else %}Yangi mahsulot turi{% endif %} — Mumu{% endblock %}
+{% block page_title %}{% if instance %}{{ instance.name }}{% else %}Yangi mahsulot turi{% endif %}{% endblock %}
+{% block active %}product_types{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span>
+  <a href="{% url 'dashboard:product-type-list' %}">Mahsulot turlari</a>
+  <span class="sep"></span>
+  <span>{% if instance %}{{ instance.name }}{% else %}Yangi{% endif %}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:product-type-list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Orqaga
+  </a>
+  <button form="ptform" type="submit" class="btn btn-accent btn-sm">
+    <i class="bi bi-check-lg"></i> Saqlash
+  </button>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- LEFT: type form + add attribute -->
+  <div class="col-lg-4">
+
+    <div class="form-sec">
+      <div class="form-sec-title"><i class="bi bi-tags"></i> Tur ma'lumotlari</div>
+      <div class="form-sec-body">
+        <form id="ptform" method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Nomi <span class="req">*</span></label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="field-error">{{ form.name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Slug</label>
+            {{ form.slug }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tavsif</label>
+            {{ form.description }}
+          </div>
+          <label class="form-check mb-3">
+            {{ form.is_active }}
+            <span class="form-check-label">Faol</span>
+          </label>
+          <button type="submit" class="btn btn-accent w-100">
+            <i class="bi bi-check-lg"></i> Saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {% if instance %}
+    <div class="form-sec">
+      <div class="form-sec-title"><i class="bi bi-plus-circle"></i> Xususiyat qo'shish</div>
+      <div class="form-sec-body">
+        <form method="post" action="{% url 'dashboard:attribute-create' pt_pk=instance.pk %}" novalidate>
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">Nomi</label>
+            {{ attr_form.name }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Kod</label>
+            {{ attr_form.code }}
+            <div class="form-text">lotin, raqam, "_" → protein_percent</div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Ma'lumot turi</label>
+            {{ attr_form.data_type }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Birlik</label>
+            {{ attr_form.unit }}
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6 d-flex flex-column gap-2">
+              <label class="form-check"><input type="checkbox" name="is_required" class="form-check-input"><span class="form-check-label">Majburiy</span></label>
+              <label class="form-check"><input type="checkbox" name="is_filterable" class="form-check-input"><span class="form-check-label">Filterda</span></label>
+            </div>
+            <div class="col-6 d-flex flex-column gap-2">
+              <label class="form-check"><input type="checkbox" name="is_searchable" class="form-check-input"><span class="form-check-label">Qidiruvda</span></label>
+              <label class="form-check"><input type="checkbox" name="is_variant_level" class="form-check-input"><span class="form-check-label">Variant uchun</span></label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-plus"></i> Xususiyat qo'shish
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT: attributes list -->
+  <div class="col-lg-8">
+    {% if instance %}
+      {% if attrs %}
+        {% for attr in attrs %}
+        <div class="surface mb-3">
+          <div class="surface-hd">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span style="font-weight:650;">{{ attr.name }}</span>
+              <span class="mono" style="font-size:11.5px;color:var(--text-4);">{{ attr.code }}</span>
+              <span class="pill pill-draft" style="font-size:10.5px;">{{ attr.get_data_type_display }}</span>
+              {% if attr.unit %}
+                <span class="pill pill-draft" style="font-size:10.5px;">{{ attr.unit }}</span>{% endif %}
+              {% if attr.is_filterable %}
+                <span class="pill" style="font-size:10px;background:#dbeafe;color:#1d4ed8;">Filter</span>{% endif %}
+              {% if attr.is_variant_level %}
+                <span class="pill" style="font-size:10px;background:#fef9c3;color:#92400e;">Variant</span>{% endif %}
+              {% if attr.is_required %}
+                <span class="pill" style="font-size:10px;background:#ffe4e6;color:#be123c;">Majburiy</span>{% endif %}
+            </div>
+            <form method="post" action="{% url 'dashboard:attribute-delete' pk=attr.pk %}"
+                  onsubmit="return confirm('\'{{ attr.name|escapejs }}\' ni o\'chirasizmi?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:#e11d48;">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+
+          {% if attr.data_type in "enum,multi_enum" %}
+          <div style="padding:14px 18px;">
+            <div class="d-flex flex-wrap gap-1 mb-3">
+              {% for opt in attr.options.all %}
+                <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+                             border-radius:20px;background:#f3f4f6;font-size:12px;font-weight:500;color:var(--text-2);">
+                  {{ opt.label }}
+                  <form method="post" action="{% url 'dashboard:attr-option-delete' pk=opt.pk %}"
+                        style="display:inline;" onsubmit="return confirm('\'{{ opt.label|escapejs }}\' ni o\'chirasizmi?');">
+                    {% csrf_token %}
+                    <button type="submit"
+                            style="background:none;border:none;padding:0;cursor:pointer;color:#9ca3af;
+                                   line-height:1;font-size:13px;display:flex;align-items:center;"
+                            title="O'chirish">×</button>
+                  </form>
+                </span>
+              {% empty %}
+                <span style="font-size:12.5px;color:var(--text-4);">Hali variant yo'q</span>
+              {% endfor %}
+            </div>
+
+            <form method="post" action="{% url 'dashboard:attr-option-create' attr_pk=attr.pk %}"
+                  class="d-flex gap-2 align-items-end flex-wrap">
+              {% csrf_token %}
+              <div>
+                <label class="form-label">Label</label>
+                {{ opt_form.label }}
+              </div>
+              <div>
+                <label class="form-label">Value</label>
+                {{ opt_form.value }}
+              </div>
+              <div>
+                <label class="form-label">Slug</label>
+                {{ opt_form.slug }}
+              </div>
+              <button type="submit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-plus"></i> Qo'shish
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="surface">
+          <div class="empty-state">
+            <i class="bi bi-list-check"></i>
+            <p>Bu tur uchun xususiyat qo'shilmagan</p>
+            <span style="font-size:12.5px;color:var(--text-4);">Chap tomondagi forma orqali qo'shing</span>
+          </div>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="surface">
+        <div class="empty-state">
+          <i class="bi bi-arrow-left"></i>
+          <p>Avval mahsulot turini saqlang</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const n=document.getElementById('id_name'),s=document.getElementById('id_slug');
+let t=!!s?.value;
+n?.addEventListener('input',()=>{ if(t)return; s.value=n.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'').replace(/-+/g,'-'); });
+s?.addEventListener('input',()=>{ t=true; });
+// attr code autofill
+const an=document.querySelector('form[action*="attributes/create"] [name="name"]');
+const ac=document.querySelector('form[action*="attributes/create"] [name="code"]');
+if(an&&ac){ let ct=!!ac.value;
+  an.addEventListener('input',()=>{ if(ct)return; ac.value=an.value.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'').replace(/_+/g,'_'); });
+  ac.addEventListener('input',()=>{ ct=true; });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Dashboard — Mumu{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block active %}home{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:product-create' %}" class="btn btn-accent btn-sm">
+    <i class="bi bi-plus"></i> Yangi mahsulot
+  </a>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-2">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:#eef2ff;">
+        <i class="bi bi-box-seam" style="color:#6366f1;"></i>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.products }}</div>
+        <div class="kpi-lbl">Jami mahsulot</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-2">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:#d1fae5;">
+        <i class="bi bi-check-circle" style="color:#059669;"></i>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.active }}</div>
+        <div class="kpi-lbl">Faol</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-2">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:#fef3c7;">
+        <i class="bi bi-pencil-square" style="color:#d97706;"></i>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.draft }}</div>
+        <div class="kpi-lbl">Qoralama</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-2">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:#dbeafe;">
+        <i class="bi bi-diagram-3" style="color:#2563eb;"></i>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.categories }}</div>
+        <div class="kpi-lbl">Kategoriya</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-2">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:#fce7f3;">
+        <i class="bi bi-patch-check" style="color:#db2777;"></i>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.brands }}</div>
+        <div class="kpi-lbl">Brend</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-2">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:#ffedd5;">
+        <i class="bi bi-collection" style="color:#ea580c;"></i>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.variants }}</div>
+        <div class="kpi-lbl">Variant</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Recent products table -->
+  <div class="col-lg-8">
+    <div class="surface">
+      <div class="surface-hd">
+        <span>So'nggi mahsulotlar</span>
+        <a href="{% url 'dashboard:product-list' %}" class="btn btn-ghost btn-sm" style="font-size:12px;">
+          Barchasi <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      {% if recent %}
+      <table class="pt">
+        <thead>
+          <tr>
+            <th>Mahsulot</th>
+            <th>Brend</th>
+            <th>Status</th>
+            <th>Sana</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in recent %}
+          <tr>
+            <td>
+              <div class="pt-link">{{ p.name }}</div>
+              <div class="pt-sub">{{ p.primary_category.name|default:"—" }}</div>
+            </td>
+            <td style="color:var(--text-3);font-size:13px;">{{ p.brand.name|default:"—" }}</td>
+            <td>
+              <span class="pill pill-{{ p.status }}">{{ p.get_status_display }}</span>
+            </td>
+            <td style="color:var(--text-4);font-size:12px;">{{ p.created_at|date:"d.m.Y" }}</td>
+            <td>
+              <a href="{% url 'dashboard:product-edit' pk=p.pk %}"
+                 class="btn btn-ghost btn-sm" title="Tahrirlash">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-box-seam"></i>
+        <p>Hali mahsulot yo'q</p>
+        <a href="{% url 'dashboard:product-create' %}" class="btn btn-accent btn-sm">
+          <i class="bi bi-plus"></i> Birinchi mahsulotni qo'shing
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="col-lg-4">
+    <div class="surface mb-3">
+      <div class="surface-hd">Tezkor harakatlar</div>
+      <div class="surface-bd" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+        <a href="{% url 'dashboard:product-create' %}" class="quick-action">
+          <i class="bi bi-plus-circle"></i>
+          <div>
+            <div style="font-weight:600;">Mahsulot qo'shish</div>
+            <div style="font-size:11.5px;color:var(--text-4);">Yangi mahsulot va variant</div>
+          </div>
+        </a>
+        <a href="{% url 'dashboard:category-create' %}" class="quick-action">
+          <i class="bi bi-diagram-3"></i>
+          <div>
+            <div style="font-weight:600;">Kategoriya qo'shish</div>
+            <div style="font-size:11.5px;color:var(--text-4);">Katalog tuzilmasini sozlash</div>
+          </div>
+        </a>
+        <a href="{% url 'dashboard:brand-create' %}" class="quick-action">
+          <i class="bi bi-patch-check"></i>
+          <div>
+            <div style="font-weight:600;">Brend qo'shish</div>
+            <div style="font-size:11.5px;color:var(--text-4);">Yangi ishlab chiqaruvchi</div>
+          </div>
+        </a>
+        <a href="{% url 'dashboard:product-type-create' %}" class="quick-action">
+          <i class="bi bi-tags"></i>
+          <div>
+            <div style="font-weight:600;">Mahsulot turi</div>
+            <div style="font-size:11.5px;color:var(--text-4);">Xususiyat sxemasini yaratish</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Status breakdown -->
+    <div class="surface">
+      <div class="surface-hd">Holat bo'yicha</div>
+      <div class="surface-bd" style="padding:16px 18px;">
+        {% for label, key, color in stats_breakdown|default:"" %}{% endfor %}
+        <div class="d-flex flex-column gap-2">
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="pill pill-active">Faol</span>
+            <span style="font-weight:600;font-size:14px;">{{ stats.active }}</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="pill pill-draft">Qoralama</span>
+            <span style="font-weight:600;font-size:14px;">{{ stats.draft }}</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="pill pill-archived">Boshqa</span>
+            <span style="font-weight:600;font-size:14px;">{{ stats.products|add:"-0"|add:stats.active|add:"-0" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

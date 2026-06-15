@@ -1,0 +1,92 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{% if instance %}{{ instance.name }}{% else %}Yangi brend{% endif %} — Mumu{% endblock %}
+{% block page_title %}{% if instance %}Brend tahrirlash{% else %}Yangi brend{% endif %}{% endblock %}
+{% block active %}brands{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span>
+  <a href="{% url 'dashboard:brand-list' %}">Brendlar</a>
+  <span class="sep"></span>
+  <span>{% if instance %}{{ instance.name }}{% else %}Yangi{% endif %}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:brand-list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Orqaga
+  </a>
+  <button form="bform" type="submit" class="btn btn-accent btn-sm">
+    <i class="bi bi-check-lg"></i> Saqlash
+  </button>
+{% endblock %}
+
+{% block content %}
+<form id="bform" method="post" novalidate>
+{% csrf_token %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="form-sec">
+      <div class="form-sec-title"><i class="bi bi-patch-check"></i> Brend ma'lumotlari</div>
+      <div class="form-sec-body">
+        <div class="mb-3">
+          <label class="form-label">Nomi <span class="req">*</span></label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="field-error">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Slug</label>
+          {{ form.slug }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Logo URL</label>
+          {{ form.logo }}
+          {% if instance.logo %}
+          <div class="mt-2">
+            <img src="{{ instance.logo }}" style="height:48px;border-radius:8px;border:1px solid var(--border);"
+                 onerror="this.style.display='none'" alt="">
+          </div>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tavsif</label>
+          {{ form.description }}
+        </div>
+        <div>
+          <label class="form-label">Mamlakat</label>
+          {{ form.country }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="form-sec">
+      <div class="form-sec-title"><i class="bi bi-toggles"></i> Holat</div>
+      <div class="form-sec-body">
+        <label class="form-check mb-3">
+          {{ form.is_active }}
+          <span class="form-check-label">Faol brend</span>
+        </label>
+        <button type="submit" class="btn btn-accent w-100">
+          <i class="bi bi-check-lg"></i> Saqlash
+        </button>
+        {% if instance %}
+        <button type="button" class="btn btn-outline-danger w-100 mt-2 btn-sm"
+                onclick="confirmDel('{% url 'dashboard:brand-delete' pk=instance.pk %}','{{ instance.name|escapejs }}')">
+          <i class="bi bi-trash"></i> O'chirish
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+</form>
+<form id="delForm" method="post">{% csrf_token %}</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+const n=document.getElementById('id_name'),s=document.getElementById('id_slug');
+let t=!!s?.value;
+n?.addEventListener('input',()=>{ if(t)return; s.value=n.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'').replace(/-+/g,'-'); });
+s?.addEventListener('input',()=>{ t=true; });
+function confirmDel(url,name){ if(confirm(`"${name}" ni o'chirishni tasdiqlaysizmi?`)){ const f=document.getElementById('delForm');f.action=url;f.submit(); } }
+</script>
+{% endblock %}
