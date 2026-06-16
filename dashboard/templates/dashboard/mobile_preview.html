@@ -257,6 +257,63 @@
     color: rgba(255,255,255,.78);
   }
 
+  .subcategory-panel {
+    margin: -8px 0 22px;
+  }
+
+  .subcategory-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 1px 1px 4px;
+    scrollbar-width: none;
+  }
+
+  .subcategory-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .subcat-chip {
+    min-height: 42px;
+    border: 1px solid var(--app-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--app-ink);
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 850;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .subcat-chip.is-active {
+    border-color: transparent;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-2);
+  }
+
+  .subcat-image {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #eef7fb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--app-primary);
+    flex: 0 0 28px;
+  }
+
+  .subcat-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
   .product-list {
     display: flex;
     flex-direction: column;
@@ -444,7 +501,7 @@
         </div>
 
         <div class="pet-list" aria-label="Hayvon kategoriyalari">
-          <button class="pet-card is-active" type="button" data-category="all" data-tone="sage">
+          <button class="pet-card is-active" type="button" data-parent-card data-parent-id="all" data-tone="sage">
             <span class="pet-icon"><i class="bi bi-grid"></i></span>
             <span>
               <span class="pet-name">Barchasi</span>
@@ -452,7 +509,7 @@
             </span>
           </button>
           {% for category in pet_categories %}
-            <button class="pet-card" type="button" data-category="{{ category.object.name|escape }}" data-tone="{{ category.tone }}">
+            <button class="pet-card" type="button" data-parent-card data-parent-id="{{ category.object.id }}" data-tone="{{ category.tone }}">
               <span class="pet-icon">
                 {% if category.object.image %}
                   <img src="{{ category.object.image }}" alt="{{ category.object.name }}">
@@ -462,15 +519,41 @@
               </span>
               <span>
                 <span class="pet-name">{{ category.label }}</span>
-                <span class="pet-count">{{ category.object.product_count }} mahsulot</span>
+                <span class="pet-count">{{ category.product_count }} mahsulot</span>
               </span>
             </button>
           {% endfor %}
         </div>
 
+        <div class="subcategory-panel" data-subcategory-panel hidden>
+          <div class="section-row">
+            <h2>Bo'limlar</h2>
+            <span>Ichki kategoriya</span>
+          </div>
+          <div class="subcategory-strip" aria-label="Ichki kategoriyalar">
+            <button class="subcat-chip is-active" type="button" data-subcategory-chip data-parent-id="all" data-category-id="all">
+              Barchasi
+            </button>
+            {% for category in pet_categories %}
+              {% for child in category.children %}
+                <button class="subcat-chip" type="button" data-subcategory-chip data-parent-id="{{ category.object.id }}" data-category-id="{{ child.object.id }}" hidden>
+                  <span class="subcat-image">
+                    {% if child.object.image %}
+                      <img src="{{ child.object.image }}" alt="{{ child.object.name }}">
+                    {% else %}
+                      <i class="bi {{ child.icon }}"></i>
+                    {% endif %}
+                  </span>
+                  {{ child.object.name }}
+                </button>
+              {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+
         <div class="section-row">
           <h2>Mahsulotlar</h2>
-          <span>{{ preview_products|length }} ta</span>
+          <span data-product-count-label>{{ preview_products|length }} ta</span>
         </div>
 
         {% if preview_products %}
@@ -478,7 +561,8 @@
             {% for item in preview_products %}
               <button class="product-card {% if forloop.first %}is-active{% endif %}" type="button"
                       data-product-card
-                      data-category="{{ item.object.primary_category.name|default:''|escape }}">
+                      data-category-ids="{{ item.category_ids }}"
+                      data-parent-ids="{{ item.parent_ids }}">
                 <span class="product-thumb">
                   {% if item.image %}
                     <img src="{{ item.image }}" alt="{{ item.object.name }}">
@@ -523,17 +607,71 @@
 
 {% block extra_js %}
 <script>
-  document.querySelectorAll('.pet-card[data-category]').forEach((button) => {
+  const subcategoryPanel = document.querySelector('[data-subcategory-panel]');
+  const subcategoryChips = Array.from(document.querySelectorAll('[data-subcategory-chip]'));
+  let activeParentId = 'all';
+  let activeCategoryId = 'all';
+
+  function updateSubcategories() {
+    let visibleCount = 0;
+    activeCategoryId = 'all';
+
+    subcategoryChips.forEach((chip) => {
+      const isAll = chip.dataset.categoryId === 'all';
+      const isVisible = isAll || chip.dataset.parentId === activeParentId;
+
+      chip.hidden = activeParentId === 'all' ? !isAll : !isVisible;
+      chip.classList.toggle('is-active', isAll);
+
+      if (!isAll && isVisible) {
+        visibleCount += 1;
+      }
+    });
+
+    if (subcategoryPanel) {
+      subcategoryPanel.hidden = activeParentId === 'all' || visibleCount === 0;
+    }
+  }
+
+  function applyProductFilter() {
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-product-card]').forEach((card) => {
+      const parentIds = card.dataset.parentIds || '';
+      const categoryIds = card.dataset.categoryIds || '';
+      const parentMatch = activeParentId === 'all' || parentIds.split(' ').includes(`parent-${activeParentId}`);
+      const categoryMatch = activeCategoryId === 'all' || categoryIds.split(' ').includes(`cat-${activeCategoryId}`);
+      const isVisible = parentMatch && categoryMatch;
+
+      card.style.display = isVisible ? '' : 'none';
+      if (isVisible) {
+        visibleCount += 1;
+      }
+    });
+
+    const countLabel = document.querySelector('[data-product-count-label]');
+    if (countLabel) {
+      countLabel.textContent = `${visibleCount} ta`;
+    }
+  }
+
+  document.querySelectorAll('[data-parent-card]').forEach((button) => {
     button.addEventListener('click', () => {
-      const category = button.dataset.category;
+      activeParentId = button.dataset.parentId || 'all';
 
-      document.querySelectorAll('.pet-card').forEach((item) => item.classList.remove('is-active'));
+      document.querySelectorAll('[data-parent-card]').forEach((item) => item.classList.remove('is-active'));
       button.classList.add('is-active');
+      updateSubcategories();
+      applyProductFilter();
+    });
+  });
 
-      document.querySelectorAll('[data-product-card]').forEach((card) => {
-        const isMatch = category === 'all' || card.dataset.category === category;
-        card.style.display = isMatch ? '' : 'none';
-      });
+  subcategoryChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      activeCategoryId = chip.dataset.categoryId || 'all';
+      subcategoryChips.forEach((item) => item.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      applyProductFilter();
     });
   });
 
@@ -543,5 +681,7 @@
       card.classList.add('is-active');
     });
   });
+
+  updateSubcategories();
 </script>
 {% endblock %}

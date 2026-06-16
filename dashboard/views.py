@@ -82,12 +82,25 @@ class MobilePreviewView(View):
             .annotate(product_count=Count('product_categories'))
             .order_by('parent__name', 'sort_order', 'name')
         )
+        root_categories = [category for category in categories if category.parent_id is None]
+        children_by_parent = {}
+        for category in categories:
+            if category.parent_id:
+                children_by_parent.setdefault(category.parent_id, []).append(category)
+
         pet_categories = [
             {
                 'object': category,
+                'children': [
+                    {
+                        'object': child,
+                        **self._category_meta(child),
+                    }
+                    for child in children_by_parent.get(category.id, [])
+                ],
                 **self._category_meta(category),
             }
-            for category in categories
+            for category in root_categories
         ]
 
         products = (
@@ -97,25 +110,51 @@ class MobilePreviewView(View):
             .prefetch_related(
                 'media',
                 'variants',
+                'product_categories__category',
             )
             .order_by('-created_at')[:18]
         )
 
         preview_products = []
+        product_count_by_category = {}
+        product_count_by_parent = {}
 
         for product in products:
             images = [m.url for m in product.media.all() if m.media_type == 'image']
             variants = [v for v in product.variants.all() if v.status == 'active']
             prices = [v.price for v in variants]
             currency = variants[0].currency if variants else 'UZS'
+            product_categories = []
+            if product.primary_category:
+                product_categories.append(product.primary_category)
+            product_categories.extend(
+                pc.category for pc in product.product_categories.all()
+                if pc.category and pc.category.is_active
+            )
+            unique_categories = list({category.id: category for category in product_categories}.values())
+            parent_ids = {
+                category.parent_id or category.id
+                for category in unique_categories
+            }
+            for category in unique_categories:
+                product_count_by_category[category.id] = product_count_by_category.get(category.id, 0) + 1
+            for parent_id in parent_ids:
+                product_count_by_parent[parent_id] = product_count_by_parent.get(parent_id, 0) + 1
 
             item = {
                 'object': product,
                 'image': images[0] if images else '',
                 'price': min(prices) if prices else None,
                 'currency': currency,
+                'category_ids': ' '.join(f'cat-{category.id}' for category in unique_categories),
+                'parent_ids': ' '.join(f'parent-{parent_id}' for parent_id in parent_ids if parent_id),
             }
             preview_products.append(item)
+
+        for category in pet_categories:
+            category['product_count'] = product_count_by_parent.get(category['object'].id, 0)
+            for child in category['children']:
+                child['product_count'] = product_count_by_category.get(child['object'].id, 0)
 
         return render(request, 'dashboard/mobile_preview.html', {
             'active': 'mobile_preview',
