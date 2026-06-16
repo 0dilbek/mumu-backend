@@ -50,6 +50,31 @@ class HomeView(View):
 
 @staff_required
 class MobilePreviewView(View):
+    def _category_meta(self, category):
+        name = category.name.lower()
+        meta = {
+            'icon': 'bi-grid',
+            'tone': 'sage',
+            'label': category.name,
+        }
+
+        pet_map = [
+            (('it', 'dog', 'kuchuk', 'kuchukcha'), 'bi-hearts', 'amber'),
+            (('mushuk', 'cat', 'kitten'), 'bi-moon-stars', 'mint'),
+            (('baliq', 'fish', 'aquarium'), 'bi-water', 'blue'),
+            (('qush', 'bird', 'parrot'), 'bi-feather', 'sky'),
+            (('kemiruvchi', 'hamster', 'rabbit', 'quyon', 'small'), 'bi-circle', 'rose'),
+            (('reptile', 'sudralib', 'toshbaqa', 'turtle'), 'bi-brightness-high', 'lime'),
+        ]
+
+        for keywords, icon, tone in pet_map:
+            if any(keyword in name for keyword in keywords):
+                meta['icon'] = icon
+                meta['tone'] = tone
+                break
+
+        return meta
+
     def get(self, request):
         categories = list(
             Category.objects
@@ -57,6 +82,13 @@ class MobilePreviewView(View):
             .annotate(product_count=Count('product_categories'))
             .order_by('parent__name', 'sort_order', 'name')[:12]
         )
+        pet_categories = [
+            {
+                'object': category,
+                **self._category_meta(category),
+            }
+            for category in categories
+        ]
 
         products = (
             Product.objects
@@ -122,6 +154,7 @@ class MobilePreviewView(View):
         return render(request, 'dashboard/mobile_preview.html', {
             'active': 'mobile_preview',
             'categories': categories,
+            'pet_categories': pet_categories,
             'preview_products': preview_products,
             'selected_product': selected_product,
         })
