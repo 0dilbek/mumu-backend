@@ -6,6 +6,7 @@ app_name = 'dashboard'
 urlpatterns = [
     # Home
     path('', views.HomeView.as_view(), name='home'),
+    path('mobile-preview/', views.MobilePreviewView.as_view(), name='mobile-preview'),
 
     # Products
     path('products/',                      views.ProductListView.as_view(),   name='product-list'),

@@ -1,0 +1,719 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Mobil preview — Mumu{% endblock %}
+{% block page_title %}Mobil preview{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep"></span><span>Mobil preview</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'dashboard:product-list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-box"></i> Mahsulotlar
+  </a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .mobile-preview-shell {
+    display: grid;
+    grid-template-columns: minmax(320px, 390px) minmax(320px, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .phone-frame {
+    width: min(390px, 100%);
+    height: 780px;
+    margin: 0 auto;
+    padding: 12px;
+    border-radius: 34px;
+    background: #151923;
+    box-shadow: 0 24px 70px rgba(17, 24, 39, .24), inset 0 0 0 1px rgba(255,255,255,.08);
+    position: sticky;
+    top: 76px;
+  }
+
+  .phone-screen {
+    height: 100%;
+    overflow: hidden;
+    border-radius: 25px;
+    background: #f6f7f4;
+    color: #17201a;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-status {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .phone-status-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #263126;
+  }
+
+  .mobile-app {
+    flex: 1;
+    overflow: auto;
+    padding: 12px 16px 88px;
+  }
+
+  .mobile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .mobile-place {
+    min-width: 0;
+  }
+
+  .mobile-place-label {
+    color: #7a837a;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+
+  .mobile-place strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .mobile-icon-btn {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #18221c;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 18px rgba(43, 51, 41, .08);
+  }
+
+  .mobile-search {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 44px;
+    padding: 0 13px;
+    border-radius: 16px;
+    background: #fff;
+    color: #8b948b;
+    box-shadow: 0 8px 18px rgba(43, 51, 41, .07);
+    margin-bottom: 14px;
+  }
+
+  .mobile-search span {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .category-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 0 15px;
+    scrollbar-width: none;
+  }
+
+  .category-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-chip {
+    border: 0;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #4d584d;
+    min-height: 34px;
+    padding: 0 13px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 6px 14px rgba(43, 51, 41, .06);
+  }
+
+  .cat-chip.is-active {
+    background: #243d2f;
+    color: #fff;
+  }
+
+  .mobile-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2px 0 10px;
+  }
+
+  .mobile-section-title h2 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .mobile-section-title span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8a9389;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+  }
+
+  .product-card {
+    border: 0;
+    text-align: left;
+    background: #fff;
+    border-radius: 18px;
+    padding: 9px;
+    min-width: 0;
+    box-shadow: 0 10px 22px rgba(43, 51, 41, .08);
+  }
+
+  .product-card.is-active {
+    outline: 2px solid #243d2f;
+    outline-offset: 1px;
+  }
+
+  .product-thumb {
+    aspect-ratio: 1 / 1;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #e7efe3, #f8f5e9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #78907e;
+    font-size: 34px;
+  }
+
+  .product-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-name {
+    margin-top: 8px;
+    min-height: 34px;
+    font-size: 12.5px;
+    line-height: 1.32;
+    font-weight: 800;
+    color: #1d261f;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+    margin-top: 8px;
+  }
+
+  .product-price {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 900;
+    color: #243d2f;
+    line-height: 1.2;
+  }
+
+  .product-add {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 10px;
+    border: 0;
+    background: #f0b429;
+    color: #201809;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .phone-tabbar {
+    height: 70px;
+    margin: -70px 13px 13px;
+    border-radius: 22px;
+    background: rgba(255,255,255,.95);
+    box-shadow: 0 -8px 24px rgba(43, 51, 41, .12);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .tab-item {
+    border: 0;
+    background: transparent;
+    color: #98a196;
+    font-size: 19px;
+  }
+
+  .tab-item.is-active {
+    color: #243d2f;
+  }
+
+  .preview-detail {
+    display: grid;
+    grid-template-columns: minmax(280px, .95fr) minmax(280px, 1fr);
+    gap: 16px;
+  }
+
+  .detail-hero,
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-s);
+  }
+
+  .detail-hero {
+    overflow: hidden;
+  }
+
+  .detail-image {
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(145deg, #e8f0e7, #f9f3df);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #77907d;
+    font-size: 56px;
+  }
+
+  .detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .detail-body {
+    padding: 16px;
+  }
+
+  .detail-kicker {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-4);
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .detail-title {
+    margin: 8px 0 8px;
+    font-size: 23px;
+    line-height: 1.18;
+    font-weight: 750;
+    letter-spacing: 0;
+  }
+
+  .detail-copy {
+    color: var(--text-3);
+    font-size: 13px;
+    margin: 0;
+  }
+
+  .detail-panel {
+    padding: 16px;
+  }
+
+  .preview-price {
+    font-size: 24px;
+    font-weight: 800;
+    color: #243d2f;
+  }
+
+  .preview-compare {
+    color: var(--text-4);
+    text-decoration: line-through;
+    font-size: 13px;
+    margin-left: 8px;
+  }
+
+  .variant-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .variant-option {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .variant-option.is-selected {
+    border-color: #91b89d;
+    background: #f2f8f3;
+  }
+
+  .variant-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .variant-attrs {
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--text-4);
+  }
+
+  .quantity-row {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .stepper {
+    display: inline-grid;
+    grid-template-columns: 34px 42px 34px;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .stepper button {
+    border: 0;
+    background: #fff;
+    color: var(--text-2);
+  }
+
+  .stepper output {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-weight: 700;
+  }
+
+  .attr-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 14px;
+  }
+
+  .attr-pill {
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: var(--text-2);
+    padding: 5px 9px;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .preview-empty {
+    display: flex;
+    min-height: 420px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-4);
+  }
+
+  @media (max-width: 1180px) {
+    .mobile-preview-shell,
+    .preview-detail {
+      grid-template-columns: 1fr;
+    }
+
+    .phone-frame {
+      position: relative;
+      top: auto;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .phone-frame {
+      height: 720px;
+      padding: 8px;
+      border-radius: 28px;
+    }
+
+    .phone-screen {
+      border-radius: 22px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-preview-shell">
+  <section class="phone-frame" aria-label="Mobil ilova preview">
+    <div class="phone-screen">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="phone-status-icons">
+          <i class="bi bi-reception-4"></i>
+          <i class="bi bi-wifi"></i>
+          <i class="bi bi-battery-full"></i>
+        </span>
+      </div>
+
+      <div class="mobile-app">
+        <div class="mobile-top">
+          <div class="mobile-place">
+            <div class="mobile-place-label">Yetkazish manzili</div>
+            <strong>Toshkent, Mumu Pet</strong>
+          </div>
+          <button class="mobile-icon-btn" type="button" aria-label="Savat">
+            <i class="bi bi-bag"></i>
+          </button>
+        </div>
+
+        <div class="mobile-search">
+          <i class="bi bi-search"></i>
+          <span>Mahsulot yoki kategoriya</span>
+        </div>
+
+        <div class="category-strip" aria-label="Kategoriyalar">
+          <button class="cat-chip is-active" type="button" data-category="all">Barchasi</button>
+          {% for category in categories %}
+            <button class="cat-chip" type="button" data-category="{{ category.name|escape }}">
+              {{ category.name }}
+            </button>
+          {% endfor %}
+        </div>
+
+        <div class="mobile-section-title">
+          <h2>Pet market</h2>
+          <span>{{ preview_products|length }} mahsulot</span>
+        </div>
+
+        {% if preview_products %}
+          <div class="product-grid">
+            {% for item in preview_products %}
+              <button class="product-card {% if forloop.first %}is-active{% endif %}" type="button"
+                      data-product-card
+                      data-product-index="{{ forloop.counter0 }}"
+                      data-category="{{ item.object.primary_category.name|default:''|escape }}">
+                <div class="product-thumb">
+                  {% if item.image %}
+                    <img src="{{ item.image }}" alt="{{ item.object.name }}">
+                  {% else %}
+                    <i class="bi bi-box-seam"></i>
+                  {% endif %}
+                </div>
+                <div class="product-name">{{ item.object.name }}</div>
+                <div class="product-meta">
+                  <div class="product-price">
+                    {% if item.price %}{{ item.price|floatformat:0 }} {{ item.object.variants.first.currency|default:"UZS" }}{% else %}Narx yo'q{% endif %}
+                  </div>
+                  <span class="product-add"><i class="bi bi-plus-lg"></i></span>
+                </div>
+              </button>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="preview-empty">
+            <div>
+              <i class="bi bi-phone" style="font-size:38px;display:block;margin-bottom:10px;"></i>
+              <div style="font-weight:700;color:#59635a;">Preview uchun faol mahsulot yo'q</div>
+              <div style="font-size:12px;margin-top:4px;">Mahsulot statusini "Faol" qiling.</div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <nav class="phone-tabbar" aria-label="Mobil menyu">
+        <button class="tab-item is-active" type="button" aria-label="Home"><i class="bi bi-house-door-fill"></i></button>
+        <button class="tab-item" type="button" aria-label="Katalog"><i class="bi bi-grid"></i></button>
+        <button class="tab-item" type="button" aria-label="Savat"><i class="bi bi-bag"></i></button>
+        <button class="tab-item" type="button" aria-label="Profil"><i class="bi bi-person"></i></button>
+      </nav>
+    </div>
+  </section>
+
+  <section class="preview-detail" aria-label="Tanlangan mahsulot preview">
+    {% if selected_product %}
+      {% for item in preview_products %}
+        <article class="detail-hero product-detail-panel" data-product-detail="{{ forloop.counter0 }}"
+                 {% if not forloop.first %}hidden{% endif %}>
+          <div class="detail-image">
+            {% if item.image %}
+              <img src="{{ item.image }}" alt="{{ item.object.name }}">
+            {% else %}
+              <i class="bi bi-box-seam"></i>
+            {% endif %}
+          </div>
+          <div class="detail-body">
+            <div class="detail-kicker">
+              <span>{{ item.object.primary_category.name|default:"Kategoriya yo'q" }}</span>
+              <span>&middot;</span>
+              <span>{{ item.object.brand.name|default:"Brendsiz" }}</span>
+            </div>
+            <h1 class="detail-title">{{ item.object.name }}</h1>
+            <p class="detail-copy">
+              {{ item.object.short_description|default:item.object.description|default:"Mobil ilovada mahsulotning qisqa tavsifi shu yerda ko'rinadi."|truncatechars:190 }}
+            </p>
+            {% if item.attrs %}
+              <div class="attr-pills">
+                {% for attr in item.attrs %}
+                  <span class="attr-pill">{{ attr.name }}: {{ attr.value }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </article>
+
+        <aside class="detail-panel product-detail-panel" data-product-detail="{{ forloop.counter0 }}"
+               {% if not forloop.first %}hidden{% endif %}>
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+              <div style="font-size:12px;color:var(--text-4);font-weight:700;">Boshlang'ich narx</div>
+              <div>
+                <span class="preview-price">
+                  {% if item.price %}{{ item.price|floatformat:0 }}{% else %}0{% endif %}
+                </span>
+                <span style="font-weight:700;color:#243d2f;">{{ item.object.variants.first.currency|default:"UZS" }}</span>
+                {% if item.compare_at_price %}
+                  <span class="preview-compare">{{ item.compare_at_price|floatformat:0 }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <span class="pill pill-{{ item.object.status }}">{{ item.object.get_status_display }}</span>
+          </div>
+
+          <div class="sep-text" style="margin:16px 0 10px;">Variantlar</div>
+          {% if item.variants %}
+            <div class="variant-list">
+              {% for variant in item.variants %}
+                <button type="button" class="variant-option {% if forloop.first %}is-selected{% endif %}" data-variant-option>
+                  <span>
+                    <span class="variant-name">{{ variant.name }}</span>
+                    {% if variant.attrs %}
+                      <span class="variant-attrs">{{ variant.attrs|join:", " }}</span>
+                    {% endif %}
+                  </span>
+                  <strong>{{ variant.price|floatformat:0 }}</strong>
+                </button>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state" style="padding:28px 12px;">
+              <i class="bi bi-collection"></i>
+              <p>Bu mahsulotda faol variant yo'q</p>
+            </div>
+          {% endif %}
+
+          <div class="quantity-row">
+            <div>
+              <div style="font-size:12px;color:var(--text-4);font-weight:700;">Miqdor</div>
+              <div style="font-weight:700;">Buyurtma preview</div>
+            </div>
+            <div class="stepper">
+              <button type="button" data-step="-1" aria-label="Kamaytirish"><i class="bi bi-dash"></i></button>
+              <output data-qty>1</output>
+              <button type="button" data-step="1" aria-label="Oshirish"><i class="bi bi-plus"></i></button>
+            </div>
+          </div>
+
+          <button class="btn btn-accent w-100" type="button" style="margin-top:16px;height:42px;background:#243d2f;border-color:#243d2f;">
+            <i class="bi bi-bag-plus"></i> Savatga qo'shish preview
+          </button>
+        </aside>
+      {% endfor %}
+    {% else %}
+      <div class="surface preview-empty" style="grid-column:1 / -1;">
+        <div>
+          <i class="bi bi-box-seam" style="font-size:38px;display:block;margin-bottom:10px;"></i>
+          <div style="font-weight:700;color:var(--text-2);">Preview uchun ma'lumot yo'q</div>
+          <div style="font-size:12px;margin-top:4px;">Kategoriya va faol mahsulot qo'shilsa shu yerda chiqadi.</div>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.cat-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const category = chip.dataset.category;
+
+      document.querySelectorAll('.cat-chip').forEach((item) => item.classList.remove('is-active'));
+      chip.classList.add('is-active');
+
+      document.querySelectorAll('[data-product-card]').forEach((card) => {
+        const isMatch = category === 'all' || card.dataset.category === category;
+        card.style.display = isMatch ? '' : 'none';
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-product-card]').forEach((card) => {
+    card.addEventListener('click', () => {
+      const index = card.dataset.productIndex;
+
+      document.querySelectorAll('[data-product-card]').forEach((item) => item.classList.remove('is-active'));
+      card.classList.add('is-active');
+
+      document.querySelectorAll('[data-product-detail]').forEach((panel) => {
+        panel.hidden = panel.dataset.productDetail !== index;
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-variant-option]').forEach((option) => {
+    option.addEventListener('click', () => {
+      const list = option.closest('.variant-list');
+      list.querySelectorAll('[data-variant-option]').forEach((item) => item.classList.remove('is-selected'));
+      option.classList.add('is-selected');
+    });
+  });
+
+  document.querySelectorAll('[data-step]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const panel = button.closest('.detail-panel');
+      const output = panel.querySelector('[data-qty]');
+      const next = Math.max(1, Number(output.value || output.textContent || 1) + Number(button.dataset.step));
+      output.value = next;
+      output.textContent = next;
+    });
+  });
+</script>
+{% endblock %}

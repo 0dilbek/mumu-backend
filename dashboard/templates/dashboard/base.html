@@ -497,6 +497,10 @@
        class="sb-link {% if active == 'product_types' %}active{% endif %}">
       <i class="bi bi-tags"></i> Mahsulot turlari
     </a>
+    <a href="{% url 'dashboard:mobile-preview' %}"
+       class="sb-link {% if active == 'mobile_preview' %}active{% endif %}">
+      <i class="bi bi-phone"></i> Mobil preview
+    </a>
 
     <div class="sb-label" style="margin-top:4px;">Tizim</div>
     <a href="/admin/" target="_blank" class="sb-link">
