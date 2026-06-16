@@ -97,66 +97,31 @@ class MobilePreviewView(View):
             .prefetch_related(
                 'media',
                 'variants',
-                'variants__attribute_values__attribute',
-                'variants__attribute_values__option',
-                'attribute_values__attribute',
-                'attribute_values__option',
             )
             .order_by('-created_at')[:18]
         )
 
         preview_products = []
-        selected_product = None
 
         for product in products:
             images = [m.url for m in product.media.all() if m.media_type == 'image']
             variants = [v for v in product.variants.all() if v.status == 'active']
-            default_variant = next((v for v in variants if v.is_default), variants[0] if variants else None)
             prices = [v.price for v in variants]
-
-            public_attrs = []
-            for attr_value in product.attribute_values.all():
-                if attr_value.attribute.is_public:
-                    public_attrs.append({
-                        'name': attr_value.attribute.name,
-                        'value': attr_value.get_value(),
-                    })
-
-            variant_options = []
-            for variant in variants[:5]:
-                variant_attrs = []
-                for attr_value in variant.attribute_values.all():
-                    if attr_value.attribute.is_public:
-                        value = attr_value.get_value()
-                        if value not in ('', None):
-                            variant_attrs.append(f'{attr_value.attribute.name}: {value}')
-
-                variant_options.append({
-                    'name': variant.name or variant.sku,
-                    'price': variant.price,
-                    'compare_at_price': variant.compare_at_price,
-                    'attrs': variant_attrs,
-                })
+            currency = variants[0].currency if variants else 'UZS'
 
             item = {
                 'object': product,
                 'image': images[0] if images else '',
                 'price': min(prices) if prices else None,
-                'compare_at_price': default_variant.compare_at_price if default_variant else None,
-                'variant_count': len(variants),
-                'attrs': public_attrs[:4],
-                'variants': variant_options,
+                'currency': currency,
             }
             preview_products.append(item)
-            if selected_product is None:
-                selected_product = item
 
         return render(request, 'dashboard/mobile_preview.html', {
             'active': 'mobile_preview',
             'categories': categories,
             'pet_categories': pet_categories,
             'preview_products': preview_products,
-            'selected_product': selected_product,
         })
 
 
