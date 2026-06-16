@@ -13,6 +13,42 @@
   </a>
 {% endblock %}
 
+{% block extra_head %}
+<style>
+  .cat-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .cat-thumb {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 8px;
+    background: #eef2ff;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 16px;
+  }
+
+  .cat-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cat-name-wrap {
+    min-width: 0;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="surface">
   <div class="surface-hd">
@@ -26,6 +62,7 @@
     <thead>
       <tr>
         <th>Nomi</th>
+        <th>Rasm</th>
         <th>Ota kategoriya</th>
         <th>Slug</th>
         <th style="text-align:center;">Ichkilar</th>
@@ -38,10 +75,30 @@
       {% for c in categories %}
       <tr>
         <td>
-          <a href="{% url 'dashboard:category-edit' pk=c.pk %}" class="pt-link">
-            {% if c.parent %}<span style="color:var(--text-4);margin-right:4px;">└</span>{% endif %}
-            {{ c.name }}
-          </a>
+          <div class="cat-cell">
+            <span class="cat-thumb">
+              {% if c.image %}
+                <img src="{{ c.image }}" alt="{{ c.name }}">
+              {% else %}
+                <i class="bi bi-diagram-3"></i>
+              {% endif %}
+            </span>
+            <span class="cat-name-wrap">
+              <a href="{% url 'dashboard:category-edit' pk=c.pk %}" class="pt-link">
+                {% if c.parent %}<span style="color:var(--text-4);margin-right:4px;">└</span>{% endif %}
+                {{ c.name }}
+              </a>
+            </span>
+          </div>
+        </td>
+        <td>
+          {% if c.image %}
+            <a href="{{ c.image }}" target="_blank" class="btn btn-ghost btn-sm" title="Rasmni ochish">
+              <i class="bi bi-image"></i>
+            </a>
+          {% else %}
+            <span style="color:var(--text-4);">—</span>
+          {% endif %}
         </td>
         <td style="color:var(--text-3);">{{ c.parent.name|default:"—" }}</td>
         <td><span class="mono">{{ c.slug }}</span></td>

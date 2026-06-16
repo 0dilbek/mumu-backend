@@ -80,7 +80,7 @@ class MobilePreviewView(View):
             Category.objects
             .filter(is_active=True)
             .annotate(product_count=Count('product_categories'))
-            .order_by('parent__name', 'sort_order', 'name')[:12]
+            .order_by('parent__name', 'sort_order', 'name')
         )
         pet_categories = [
             {
