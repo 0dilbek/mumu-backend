@@ -72,6 +72,10 @@
     padding: 14px 18px 92px;
   }
 
+  .app-scroll[hidden] {
+    display: none;
+  }
+
   .app-head {
     display: flex;
     align-items: center;
@@ -421,6 +425,113 @@
     font-size: 15px;
   }
 
+  .panel-hero {
+    margin-bottom: 18px;
+    padding: 16px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--app-primary), var(--app-primary-2));
+    color: #fff;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, .18);
+  }
+
+  .panel-hero-kicker {
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255,255,255,.76);
+  }
+
+  .panel-hero-title {
+    margin-top: 4px;
+    font-size: 24px;
+    line-height: 1.14;
+    font-weight: 950;
+    letter-spacing: 0;
+  }
+
+  .panel-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .panel-stat {
+    min-height: 86px;
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: var(--app-shadow);
+  }
+
+  .panel-stat-value {
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 950;
+    color: var(--app-primary-2);
+  }
+
+  .panel-stat-label {
+    margin-top: 7px;
+    color: var(--app-muted);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .panel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-action {
+    width: 100%;
+    min-height: 66px;
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    background: #fff;
+    color: var(--app-ink);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--app-shadow);
+    font-family: inherit;
+    text-align: left;
+  }
+
+  .panel-action-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border-radius: 15px;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+  }
+
+  .panel-action-title {
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 900;
+  }
+
+  .panel-action-sub {
+    margin-top: 3px;
+    color: var(--app-muted);
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .panel-action-arrow {
+    margin-left: auto;
+    color: #94a3b8;
+    font-size: 18px;
+  }
+
   .tabbar {
     height: 76px;
     margin: -76px 13px 13px;
@@ -456,14 +567,42 @@
   }
 
   @media (max-width: 620px) {
+    body {
+      background: var(--app-bg);
+    }
+
+    #sidebar,
+    .topbar,
+    .page-alerts {
+      display: none !important;
+    }
+
+    #main {
+      margin-left: 0;
+      min-height: 100vh;
+    }
+
+    .page-wrap {
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .mobile-preview-layout {
+      min-height: 100vh;
+      display: block;
+    }
+
     .phone-frame {
-      height: 760px;
-      padding: 8px;
-      border-radius: 30px;
+      width: 100%;
+      height: 100vh;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
     .phone-screen {
-      border-radius: 24px;
+      border-radius: 0;
     }
   }
 </style>
@@ -478,7 +617,7 @@
         <span><i class="bi bi-reception-4"></i><i class="bi bi-wifi"></i><i class="bi bi-battery-full"></i></span>
       </div>
 
-      <div class="app-scroll">
+      <div class="app-scroll" data-app-view="preview">
         <header class="app-head">
           <div class="brand-mark">
             <div class="brand-logo"><i class="bi bi-heart-pulse"></i></div>
@@ -594,11 +733,98 @@
         {% endif %}
       </div>
 
+      <div class="app-scroll" data-app-view="panel" hidden>
+        <header class="app-head">
+          <div class="brand-mark">
+            <div class="brand-logo"><i class="bi bi-speedometer2"></i></div>
+            <div>
+              <div class="brand-kicker">Mobile admin</div>
+              <div class="brand-title">Panel</div>
+            </div>
+          </div>
+          <button class="icon-btn" type="button" data-open-view="preview" aria-label="Previewga qaytish">
+            <i class="bi bi-phone"></i>
+          </button>
+        </header>
+
+        <div class="panel-hero">
+          <div class="panel-hero-kicker">Mumu boshqaruv paneli</div>
+          <div class="panel-hero-title">Katalogni telefondan ham oson boshqaring</div>
+        </div>
+
+        <div class="panel-stats" aria-label="Panel statistikasi">
+          <div class="panel-stat">
+            <div class="panel-stat-value">{{ stats.products }}</div>
+            <div class="panel-stat-label">Mahsulot</div>
+          </div>
+          <div class="panel-stat">
+            <div class="panel-stat-value">{{ stats.categories }}</div>
+            <div class="panel-stat-label">Kategoriya</div>
+          </div>
+          <div class="panel-stat">
+            <div class="panel-stat-value">{{ stats.active }}</div>
+            <div class="panel-stat-label">Faol</div>
+          </div>
+          <div class="panel-stat">
+            <div class="panel-stat-value">{{ stats.brands }}</div>
+            <div class="panel-stat-label">Brend</div>
+          </div>
+        </div>
+
+        <div class="section-row">
+          <h2>Panel</h2>
+          <span>Tezkor kirish</span>
+        </div>
+
+        <div class="panel-actions">
+          <a class="panel-action" href="{% url 'dashboard:product-list' %}">
+            <span class="panel-action-icon"><i class="bi bi-box"></i></span>
+            <span>
+              <span class="panel-action-title">Mahsulotlar</span>
+              <span class="panel-action-sub">Narx, rasm va variantlar</span>
+            </span>
+            <i class="bi bi-chevron-right panel-action-arrow"></i>
+          </a>
+          <a class="panel-action" href="{% url 'dashboard:category-list' %}">
+            <span class="panel-action-icon"><i class="bi bi-diagram-3"></i></span>
+            <span>
+              <span class="panel-action-title">Kategoriyalar</span>
+              <span class="panel-action-sub">Hayvonlar va bo'limlar</span>
+            </span>
+            <i class="bi bi-chevron-right panel-action-arrow"></i>
+          </a>
+          <a class="panel-action" href="{% url 'dashboard:brand-list' %}">
+            <span class="panel-action-icon"><i class="bi bi-patch-check"></i></span>
+            <span>
+              <span class="panel-action-title">Brendlar</span>
+              <span class="panel-action-sub">Ishlab chiqaruvchilar</span>
+            </span>
+            <i class="bi bi-chevron-right panel-action-arrow"></i>
+          </a>
+          <a class="panel-action" href="{% url 'dashboard:product-type-list' %}">
+            <span class="panel-action-icon"><i class="bi bi-tags"></i></span>
+            <span>
+              <span class="panel-action-title">Mahsulot turlari</span>
+              <span class="panel-action-sub">Xususiyat va qo'shimchalar</span>
+            </span>
+            <i class="bi bi-chevron-right panel-action-arrow"></i>
+          </a>
+          <button class="panel-action" type="button" data-open-view="preview">
+            <span class="panel-action-icon"><i class="bi bi-phone"></i></span>
+            <span>
+              <span class="panel-action-title">Previewga qaytish</span>
+              <span class="panel-action-sub">Ilova ko'rinishini tekshirish</span>
+            </span>
+            <i class="bi bi-chevron-right panel-action-arrow"></i>
+          </button>
+        </div>
+      </div>
+
       <nav class="tabbar" aria-label="Mobil menyu">
-        <button class="is-active" type="button" aria-label="Bosh sahifa"><i class="bi bi-house-door-fill"></i><span>Asosiy</span></button>
+        <button class="is-active" type="button" aria-label="Preview" data-tab-view="preview"><i class="bi bi-house-door-fill"></i><span>Preview</span></button>
         <button type="button" aria-label="Katalog"><i class="bi bi-grid"></i><span>Katalog</span></button>
         <button type="button" aria-label="Savat"><i class="bi bi-bag"></i><span>Savat</span></button>
-        <button type="button" aria-label="Profil"><i class="bi bi-person"></i><span>Profil</span></button>
+        <button type="button" aria-label="Panel" data-tab-view="panel"><i class="bi bi-speedometer2"></i><span>Panel</span></button>
       </nav>
     </div>
   </section>
@@ -607,6 +833,22 @@
 
 {% block extra_js %}
 <script>
+  function setMobileView(viewName) {
+    document.querySelectorAll('[data-app-view]').forEach((view) => {
+      view.hidden = view.dataset.appView !== viewName;
+    });
+
+    document.querySelectorAll('[data-tab-view]').forEach((tab) => {
+      tab.classList.toggle('is-active', tab.dataset.tabView === viewName);
+    });
+  }
+
+  document.querySelectorAll('[data-tab-view], [data-open-view]').forEach((control) => {
+    control.addEventListener('click', () => {
+      setMobileView(control.dataset.tabView || control.dataset.openView || 'preview');
+    });
+  });
+
   const subcategoryPanel = document.querySelector('[data-subcategory-panel]');
   const subcategoryChips = Array.from(document.querySelectorAll('[data-subcategory-chip]'));
   let activeParentId = 'all';

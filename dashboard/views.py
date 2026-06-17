@@ -28,21 +28,34 @@ from .forms import (
 staff_required = method_decorator(staff_member_required, name='dispatch')
 
 
+def _is_mobile_request(request):
+    user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+    mobile_markers = ('android', 'iphone', 'ipad', 'ipod', 'mobile')
+    return any(marker in user_agent for marker in mobile_markers)
+
+
+def _dashboard_stats():
+    return {
+        'products':      Product.objects.count(),
+        'active':        Product.objects.filter(status='active').count(),
+        'draft':         Product.objects.filter(status='draft').count(),
+        'categories':    Category.objects.count(),
+        'brands':        Brand.objects.count(),
+        'variants':      ProductVariant.objects.count(),
+        'product_types': ProductType.objects.count(),
+    }
+
+
 # ─── Dashboard Home ────────────────────────────────────────────────────────────
 
 @staff_required
 class HomeView(View):
     def get(self, request):
+        if _is_mobile_request(request):
+            return redirect('dashboard:mobile-preview')
+
         ctx = {
-            'stats': {
-                'products':        Product.objects.count(),
-                'active':          Product.objects.filter(status='active').count(),
-                'draft':           Product.objects.filter(status='draft').count(),
-                'categories':      Category.objects.count(),
-                'brands':          Brand.objects.count(),
-                'variants':        ProductVariant.objects.count(),
-                'product_types':   ProductType.objects.count(),
-            },
+            'stats': _dashboard_stats(),
             'recent': Product.objects.select_related('brand', 'primary_category').order_by('-created_at')[:10],
         }
         return render(request, 'dashboard/home.html', ctx)
@@ -158,6 +171,7 @@ class MobilePreviewView(View):
 
         return render(request, 'dashboard/mobile_preview.html', {
             'active': 'mobile_preview',
+            'stats': _dashboard_stats(),
             'categories': categories,
             'pet_categories': pet_categories,
             'preview_products': preview_products,
