@@ -36,7 +36,7 @@
     <tbody>
       {% for b in brands %}
       <tr>
-        <td>
+        <td data-label="Logo">
           {% if b.logo %}
             <img src="{{ b.logo }}" style="width:32px;height:32px;object-fit:cover;border-radius:7px;border:1px solid var(--border);"
                  onerror="this.style.display='none'" alt="">
@@ -47,23 +47,23 @@
             </div>
           {% endif %}
         </td>
-        <td>
+        <td data-label="Nomi" class="mobile-primary">
           <a href="{% url 'dashboard:brand-edit' pk=b.pk %}" class="pt-link">{{ b.name }}</a>
           <div class="pt-sub mono">{{ b.slug }}</div>
         </td>
-        <td style="color:var(--text-3);">{{ b.country|default:"—" }}</td>
-        <td style="text-align:center;">
+        <td data-label="Mamlakat" style="color:var(--text-3);">{{ b.country|default:"—" }}</td>
+        <td data-label="Mahsulotlar" style="text-align:center;">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
                        border-radius:6px;background:#f3f4f6;font-size:11.5px;font-weight:600;color:var(--text-3);">
             {{ b.product_count }}
           </span>
         </td>
-        <td>
+        <td data-label="Holat">
           <span class="pill {% if b.is_active %}pill-active{% else %}pill-archived{% endif %}">
             {% if b.is_active %}Faol{% else %}Nofaol{% endif %}
           </span>
         </td>
-        <td>
+        <td data-label="Amallar">
           <div class="d-flex gap-1">
             <a href="{% url 'dashboard:brand-edit' pk=b.pk %}" class="btn btn-ghost btn-sm">
               <i class="bi bi-pencil"></i>

@@ -106,16 +106,16 @@
         <tbody>
           {% for p in recent %}
           <tr>
-            <td>
+            <td data-label="Mahsulot">
               <div class="pt-link">{{ p.name }}</div>
               <div class="pt-sub">{{ p.primary_category.name|default:"—" }}</div>
             </td>
-            <td style="color:var(--text-3);font-size:13px;">{{ p.brand.name|default:"—" }}</td>
-            <td>
+            <td data-label="Brend" style="color:var(--text-3);font-size:13px;">{{ p.brand.name|default:"—" }}</td>
+            <td data-label="Status">
               <span class="pill pill-{{ p.status }}">{{ p.get_status_display }}</span>
             </td>
-            <td style="color:var(--text-4);font-size:12px;">{{ p.created_at|date:"d.m.Y" }}</td>
-            <td>
+            <td data-label="Sana" style="color:var(--text-4);font-size:12px;">{{ p.created_at|date:"d.m.Y" }}</td>
+            <td data-label="Amallar">
               <a href="{% url 'dashboard:product-edit' pk=p.pk %}"
                  class="btn btn-ghost btn-sm" title="Tahrirlash">
                 <i class="bi bi-pencil"></i>
